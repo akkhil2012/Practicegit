@@ -1,0 +1,184 @@
+Java Stream : example:
+==================
+
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+public class StreamSample {
+
+    // filter and for each
+    // Map and collect
+    // FlatMap and Optional
+    // collection filepath
+    // logging
+    // large code compressed to small lines
+    // functional interface and predicate
+    // points from Oracle Doc api
+    // reduce peek sorted
+    // where to use what???
+    public static void main(String args[]) {
+
+
+        List<Asset> assetList = Arrays.asList(new Asset(1,"asset1"),new Asset(1,"asset1"),
+                        new Asset(1,"asset2"),new Asset(1,"asset3"));
+
+        // filter and for each
+        assetList.stream().forEach(System.out::println);
+
+        System.out.println("1:");
+        assetList.stream().filter(name -> name.getName().equals("asset1"))
+                .forEach(System.out::println);
+
+        System.out.println("2:");
+        assetList.stream().filter(name -> !name.getName().equals("asset1"))
+                .forEach(result ->System.out.println(result.getName()));
+
+
+        List<Asset> modifiedAssetList =
+                assetList.stream().filter(name -> !name.getName().equals("asset1")).collect(Collectors.toList());
+
+        System.out.println("Modified list ");
+        modifiedAssetList.stream().forEach(ans -> System.out.println(ans.getName()));
+
+        //CASE 3: map
+
+        Random random = new Random();
+        Map<String,Asset> assetMap = new HashMap<>();
+
+        for(int i=0;i<1000;i++){
+            assetMap.put("assetId"+i,new Asset(random.nextInt(100),"DummyAsset"+i));
+        }
+        // find match in map
+        Optional<String> isValuePresent = assetMap.entrySet()
+                    .stream()
+                        .filter(entry -> entry.getValue().equals("DummyAsset1"))
+                .map(Map.Entry::getKey)
+                .findAny();
+        System.out.println(" Is value present " + isValuePresent);
+
+
+        // FLAT MAP: Stream from Stream
+        List<Asset> assetWithChild = Arrays.asList(new Asset(1,Arrays.asList("BiServer","BiReport1"))
+                         , new Asset(1,Arrays.asList("BiServer","BiReport2"))
+                         , new Asset(1,Arrays.asList("BiServer","BiReport2")));
+
+        List<String> modifiedChildStream =
+            assetWithChild.stream()
+                .map(asset -> asset.getChildAssets().stream())   // stream from stream
+                .flatMap(biAssetStream -> biAssetStream
+                            .filter(childAsset -> childAsset.equals("BiReport2")))
+                .collect(Collectors.toList());
+
+        System.out.println(" Modified from flat Map-----> " + isValuePresent);
+        modifiedChildStream.forEach(modChild -> System.out.println(modChild));
+
+
+
+
+        // Case: Parallel Stream : running in seperate core
+        List<Integer> listOfNumbers = Arrays.asList(1, 2, 3, 4);
+        listOfNumbers.parallelStream().forEach(number ->
+                System.out.println(number + " In Parallel :  " + Thread.currentThread().getName())
+        );
+
+        // Single Stream
+        listOfNumbers = Arrays.asList(1, 2, 3, 4);
+        listOfNumbers.stream().forEach(number ->
+                System.out.println(number + " In singleStream : " + Thread.currentThread().getName())
+        );
+
+
+
+
+        //Case:  Reduce : To combine the assets
+        String[] array = { "Sever", "BiReport", "BiDataItem" };
+
+        // The result of the reduce() method is
+        // an Optional because the list on which
+        // reduce() is called may be empty.
+        Optional<String> String_combine = Arrays.stream(array)
+                .reduce((str1, str2)
+                        -> str1 + "||" + str2);
+
+        // Displaying the combined String
+        if (String_combine.isPresent()) {
+            System.out.println("Heirarchy is as : " +String_combine.get());
+        }
+
+
+
+        // Peek and Skip:
+        // Peek for the logging operation
+        // No peek impact:
+        System.out.println(" Example for peek operation ::");
+        Stream<String> nameStream = Stream.of("Alice", "Bob", "Chuck");
+        nameStream.peek(System.out::println);
+
+        nameStream = Stream.of("Alice", "Bob", "Chuck");
+        nameStream.forEach(System.out::println);
+
+        // actual use of peek: for debugging
+        Stream.of("one", "two", "three", "four")
+                .filter(e -> e.length() > 3)
+                .peek(e -> System.out.println("Filtered value: " + e))
+                .map(String::toUpperCase)
+                .peek(e -> System.out.println("Mapped value: " + e))
+                .collect(Collectors.toList());
+
+
+    }
+
+
+}
+
+
+
+
+
+    class Asset{
+
+        private int id;
+        private String name;
+
+        public Asset(int id, List<String> childAssets) {
+            this.id = id;
+            this.childAssets = childAssets;
+        }
+
+        public List<String> getChildAssets() {
+            return childAssets;
+        }
+
+        private List<String> childAssets;
+
+        public Asset(int id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+
+        public int getId() {
+            return id;
+        }
+
+        public void setId(int id) {
+            this.id = id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+    }
+
+
