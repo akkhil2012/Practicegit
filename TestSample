@@ -13,45 +13,49 @@ import java.util.stream.Stream;
 
 public class TestSample {
 
-   /* Intro: Streams process data declaratively.
-    Collections vs. Streams: benefits of concise code.
-    Stream Ops: map, filter, sort, etc. Terminal Ops: forEach, collect, count.
-    Chaining Ops: multiple operations in one line.
-    Parallel Streams: mention benefits, caution on usage.
-    Demo: simple code example.
-    Resources for further learning.
-    */
+   /*
+          The above SQL expression automatically returns the maximum salaried employee's details,
+          without doing any computation on the developer's end. Using collections framework in Java,
+          a developer has to use loops and make repeated checks. Another concern is efficiency; as multi-core processors are available at ease,
+          a Java developer has to write parallel code processing that can be pretty error-prone.
+
+          Sequence of elements : It never stores the elements.
+          Source : Stream takes Collections, Arrays, or I/O resources as input source
+          Aggregate functions : filter, map, limit, reduce, find, match
+          Pipelining: Consumes streams and returns stream;
+          collect() method is a terminal operation which is normally present at the end of the pipelining operation to mark the end of the stream
+          Automatic iterations : in contrast to collection where the explicit iteration is needed
+         */
 
 
-    private  void checkCollectionVsStream () {
+    private void checkCollectionVsStream() {
         List<List<Asset>> assetWithChild = new ArrayList<>();
-        List<Asset> tempList = Arrays.asList(new Asset(1,Arrays.asList("BiServer","BiReport1"))
-                , new Asset(2,Arrays.asList("BiServer","BiReport2"))
-                , new Asset(3,Arrays.asList("BiServer","BiReport2")));
+        List<Asset> tempList = Arrays.asList(new Asset(1, Arrays.asList("BiServer", "BiReport1"))
+                , new Asset(2, Arrays.asList("BiServer", "BiReport2"))
+                , new Asset(3, Arrays.asList("BiServer", "BiReport2")));
         assetWithChild.add(tempList);
-
 
 
         System.out.println(" Collection way -----> ");
 
         List<Asset> resultList = new ArrayList<>();
-        for(List<Asset> assetList : assetWithChild){
-             for(Asset asset : assetList){
-                 for(String name : asset.getChildAssets()){
-                     if(name.contains("BiReport2")){
-                         resultList.add(asset);
-                     }
-                 }
-             }
+        for (List<Asset> assetList : assetWithChild) {
+            for (Asset asset : assetList) {
+                for (String name : asset.getChildAssets()) {
+                    if (name.contains("BiReport2")) {
+                        resultList.add(asset);
+                    }
+                }
+            }
         }
 
         List<Integer> resultListName = new ArrayList<>();
-        for(Asset asset : resultList){
+        for (Asset asset : resultList) {
             resultListName.add(asset.getId());
         }
 
-        for(int id : resultListName)
-            System.out.println(" -- "+ id); // 12 lines code
+        for (int id : resultListName)
+            System.out.println(" -- " + id); // 12 lines code
 
 
         System.out.println(" <--------------------------> ");
@@ -62,29 +66,29 @@ public class TestSample {
         assetWithChild.stream()
                 .flatMap(x -> x.stream()).collect(Collectors.toList())
                 .forEach(val -> val.getChildAssets()
-                .stream().filter(val1 -> val1.equals("BiReport2")).collect(Collectors.toList())
-                .forEach(ans -> System.out.println(" "+ val.getId()))); // 5lines and Pipeline
+                        .stream().filter(val1 -> val1.equals("BiReport2")).collect(Collectors.toList())
+                        .forEach(ans -> System.out.println(" " + val.getId()))); // 5lines and Pipeline
     }
 
-    private static boolean isNotEqual(Asset assetName){
+    private static boolean isNotEqual(Asset assetName) {
         return !assetName.getName().equals("asset1");
     }
 
 
-     // explaind pipeline
-    public static void functionalSample(){
-        List<Asset> assetListSample = Arrays.asList(new Asset(1,"asset1"),new Asset(1,"asset1"),
-                new Asset(2,"asset2"),new Asset(4,"asset3"),new Asset(4,"asset4"),
-                new Asset(5,"asset5"),
-                new Asset(6,"asset6"));
-        Stream <Asset> assetStreamPostFunction = assetListSample
+    // explaind pipeline
+    public static void functionalSample() {
+        List<Asset> assetListSample = Arrays.asList(new Asset(1, "asset1"), new Asset(1, "asset1"),
+                new Asset(2, "asset2"), new Asset(4, "asset3"), new Asset(4, "asset4"),
+                new Asset(5, "asset5"),
+                new Asset(6, "asset6"));
+        Stream<Asset> assetStreamPostFunction = assetListSample
                 .stream()
-                .filter(StreamSample::isNotEqual)
+                .filter(TestSample::isNotEqual)
                 .map(new Function<Asset, Asset>() {
                     @Override
                     public Asset apply(Asset asset) {  // Transformation operation
                         //return null;
-                        Asset modAsset = new Asset(002,"SampleAsset");
+                        Asset modAsset = new Asset(002, "SampleAsset");
                         return modAsset;
                     }
                 });//.forEach(System.out::println); // map accepts function
@@ -93,11 +97,11 @@ public class TestSample {
         System.out.println("Asset before  functional implementation : lambda  --- > ");
         assetListSample
                 .stream()
-                .filter(StreamSample::isNotEqual)
+                .filter(TestSample::isNotEqual)
                 .map(modAsset -> {
-                    return  new Asset(002,"SampleAsset");
+                    return new Asset(002, "SampleAsset");
                     // return modAsset;
-                }).forEach(val -> System.out.println(" "+ val.getName()));
+                }).forEach(val -> System.out.println(" " + val.getName()));
         // });
 
         System.out.println("Asset after functional implementation : lambda --- > ");
@@ -105,11 +109,15 @@ public class TestSample {
     }
 
 
+    public static void collectionOperations() {
+        List<Asset> assetListSample = Arrays.asList(new Asset(1, "asset1"), new Asset(1, "asset1"),
+                new Asset(2, "asset2"), new Asset(4, "asset3"), new Asset(4, "asset4"),
+                new Asset(5, "asset5"),
+                new Asset(6, "asset6"));
 
-    public static void collectionOperations(){
         // 3: reduce:
         //Case:  Reduce : To combine the assets
-        String[] array = { "Sever", "BiReport", "BiDataItem" };
+        String[] array = {"Sever", "BiReport", "BiDataItem"};
 
         Optional<String> String_combine = Arrays.stream(array)
                 .reduce((str1, str2)
@@ -117,16 +125,16 @@ public class TestSample {
 
         // Displaying the combined String
         if (String_combine.isPresent()) {
-            System.out.println("Heirarchy is as : " +String_combine.get());
+            System.out.println("Heirarchy is as : " + String_combine.get());
         }
 
 
         // 4: Convert Map to List with collect as terminal operation
         Random random = new Random();
-        Map<String,Asset> assetMap = new HashMap<>();
+        Map<String, Asset> assetMap = new HashMap<>();
 
-        for(int i=0;i<100000;i++){
-            assetMap.put("assetId"+i,new Asset(random.nextInt(100),"DummyAsset"+i));
+        for (int i = 0; i < 100000; i++) {
+            assetMap.put("assetId" + i, new Asset(random.nextInt(100), "DummyAsset" + i));
         }
         // find match in map
         Optional<String> isValuePresent = assetMap.entrySet()
@@ -148,7 +156,7 @@ public class TestSample {
         // MapToInt
         int sum = assetListSample.stream().mapToInt(
                 asset -> {
-                    return  asset.getId();
+                    return asset.getId();
                 }).sum();
 
         // stage1
@@ -163,56 +171,36 @@ public class TestSample {
 
     }
 
-    public static void benchMark(){
+    public static void benchMark() {
+        Random random = new Random();
+        Map<String, Asset> assetMap = new HashMap<>();
+
+        for (int i = 0; i < 1000; i++) {
+            assetMap.put("assetId" + i, new Asset(random.nextInt(100), "DummyAsset" + i));
+        }
+
         long start = System.currentTimeMillis();
         assetMap.entrySet()
                 .parallelStream()
-                .forEach( number ->
-                        System.out.println(number + " In Parallel :  " + Thread.currentThread().getName()));
+                .forEach(number ->
+                        Thread.currentThread().getName());
         long end = System.currentTimeMillis();
-        System.out.println(" time taken : parallel " + (end-start));
+        System.out.println(" time taken : parallel " + (end - start));
 
         start = System.currentTimeMillis();
         assetMap.entrySet()
                 .stream()
-                .forEach( number ->
-                        System.out.println(number + " In Single :  " + Thread.currentThread().getName()));
+                .forEach(number -> Thread.currentThread().getName());
+                       // System.out.println(number + " In Single :  " + Thread.currentThread().getName()));
         end = System.currentTimeMillis();
-        System.out.println(" time taken : Single Stream " + (end-start));
+        System.out.println(" time taken : Single Stream " + (end - start));
 
     }
 
 
-    public static void main(String args[]) {
-
-        TestSample testSample = new TestSample();
-        //1.Intro: Streams process data declaratively.
-        /*
-          The above SQL expression automatically returns the maximum salaried employee's details,
-          without doing any computation on the developer's end. Using collections framework in Java,
-          a developer has to use loops and make repeated checks. Another concern is efficiency; as multi-core processors are available at ease,
-          a Java developer has to write parallel code processing that can be pretty error-prone.
-
-          Sequence of elements : It never stores the elements.
-          Source : Stream takes Collections, Arrays, or I/O resources as input source
-          Aggregate functions : filter, map, limit, reduce, find, match
-          Pipelining: Consumes streams and returns stream;
-          collect() method is a terminal operation which is normally present at the end of the pipelining operation to mark the end of the stream
-          Automatic iterations : in contrast to collection where the explicit iteration is needed
-         */
-
-        /* 2.
-          Collections vs. Streams: benefits of concise code
-
-         */
-        testSample.checkCollectionVsStream();
-
-        /* 3. Stream Ops: map, filter, sort, etc. Terminal Ops: forEach, collect, count
-
-         */
-        // Filter for each predicate
-        List<Asset> assetList = Arrays.asList(new Asset(1,"asset1"),new Asset(1,"asset1"),
-                new Asset(1,"asset2"),new Asset(1,"asset3"));
+    public static void predicateFilter() {
+        List<Asset> assetList = Arrays.asList(new Asset(1, "asset1"), new Asset(1, "asset1"),
+                new Asset(1, "asset2"), new Asset(1, "asset3"));
 
         //case 1:  predicate: forEach uses consumer
         System.out.println("*****Predicate example starts*******");
@@ -231,20 +219,36 @@ public class TestSample {
                 .filter(asset -> !asset.getName().equals("asset1"))
                 .forEach(System.out::println);
 
-        Stream<Asset> filteredStream =  assetList.stream()
+        Stream<Asset> filteredStream = assetList.stream()
                 .filter(TestSample::isNotEqual)
                 .filter(filteredAsset -> filteredAsset.getName().equals("asset3"));
+    }
 
+    public static void main(String args[]) {
+
+        TestSample testSample = new TestSample();
+
+        //1.Intro: Streams process data declaratively.
+        /* 2.
+          Collections vs. Streams: benefits of concise code
+         */
+        testSample.checkCollectionVsStream();
+
+
+        /* 3. Stream Ops: map, filter, sort, etc. Terminal Ops: forEach, collect, count
+         */
+        // Filter for each predicate
+        predicateFilter();
         collectionOperations();
 
         /*4.  Chaining Ops: multiple operations in one line.
-
-        */
+         */
         functionalSample();
 
+
         /* 5.Parallel Streams: mention benefits, caution on usage.
-        */
-        benchMark();
+         */
+        benchMark(); // parallel stream not always better
 
     }
 
