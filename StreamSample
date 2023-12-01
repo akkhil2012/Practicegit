@@ -1,7 +1,3 @@
-Java Stream : example:
-==================
-
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -9,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -29,6 +27,91 @@ public class StreamSample {
 
         List<Asset> assetList = Arrays.asList(new Asset(1,"asset1"),new Asset(1,"asset1"),
                         new Asset(1,"asset2"),new Asset(1,"asset3"));
+
+
+
+        // predicate: forEach uses consumer
+        System.out.println("Predicate example starts");
+        System.out.println("Predicate example: using Predicate");
+        assetList.stream()
+                .filter(new Predicate<Asset>() {
+                    @Override
+                    public boolean test(Asset asset) {
+                        return !asset.getName().equals("asset1");
+                    }
+                })
+                        .forEach(asset -> System.out.println(asset.getName()));
+
+        System.out.println("Predicate example: using lambda");
+
+        assetList.stream()
+                .filter(asset -> !asset.getName().equals("asset1"))
+                        .forEach(System.out::println);
+
+        Stream<Asset> filteredStream =  assetList.stream()
+                .filter(StreamSample::isNotEqual)
+                        .filter(filteredAsset -> filteredAsset.getName().equals("asset3"));
+
+        List<Asset> assetListPostFilter = filteredStream.collect(Collectors.toList());
+        System.out.println("Final list in predicate..");
+        assetListPostFilter.forEach(asst -> System.out.println(asst.getName()));
+        System.out.println("Predicate example ends");
+
+
+        // Function apply;
+        List<Asset> assetListSample = Arrays.asList(new Asset(1,"asset1"),new Asset(1,"asset1"),
+                new Asset(2,"asset2"),new Asset(4,"asset3"),new Asset(4,"asset4"),
+                new Asset(5,"asset5"),
+                new Asset(6,"asset6"));
+        Stream <Asset> assetStreamPostFunction = assetListSample
+                .stream()
+                        .filter(StreamSample::isNotEqual)
+                                .map(new Function<Asset, Asset>() {
+                                    @Override
+                                    public Asset apply(Asset asset) {  // Transformation operation
+                                        //return null;
+                                        Asset modAsset = new Asset(002,"SampleAsset");
+                                        return modAsset;
+                                    }
+                                });//.forEach(System.out::println); // map accepts function
+        System.out.println("Asset after functional implementation --- > ");
+
+        System.out.println("Asset before  functional implementation : lambda  --- > ");
+        assetListSample
+                .stream()
+                .filter(StreamSample::isNotEqual)
+                .map(modAsset -> {
+                       return  new Asset(002,"SampleAsset");
+                       // return modAsset;
+                    }).forEach(val -> System.out.println(" "+ val.getName()));
+               // });
+
+        System.out.println("Asset after functional implementation : lambda --- > ");
+
+
+        // MapToInt
+        int sum = assetListSample.stream().mapToInt(
+                asset -> {
+                    return  asset.getId();
+                }).sum();
+
+        // stage1
+        assetListSample.stream().mapToInt(
+                asset ->
+                  asset.getId()
+                ).sum();
+
+        // stage2
+        assetListSample.stream()
+                        .mapToInt(Asset::getId).sum();
+
+
+
+        assetStreamPostFunction.collect(Collectors.toList())
+                .stream()
+                        .forEach(a -> System.out.println(a.getName()));
+
+
 
         // filter and for each
         assetList.stream().forEach(System.out::println);
@@ -137,6 +220,11 @@ public class StreamSample {
     }
 
 
+    private static boolean isNotEqual(Asset assetName){
+        return !assetName.getName().equals("asset1");
+    }
+
+
 }
 
 
@@ -152,6 +240,7 @@ public class StreamSample {
             this.id = id;
             this.childAssets = childAssets;
         }
+
 
         public List<String> getChildAssets() {
             return childAssets;
