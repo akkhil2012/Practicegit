@@ -1,0 +1,241 @@
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Random;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+public class StreamsWalkThrough {
+
+    public static void main(String args[]) {
+
+        StreamsWalkThrough testSample = new StreamsWalkThrough();
+
+        //1.Intro: Streams process data declaratively.
+        /* 2.
+          Collections vs. Streams: benefits of concise code
+         */
+        testSample.checkCollectionVsStream();
+
+
+        /* 3. Stream Ops: map, filter, sort, etc. Terminal Ops: forEach, collect, count
+         */
+        // Filter for each predicate
+        predicateFilter();
+        collectionOperations();
+
+        /*4.  Chaining Ops: multiple operations in one line.
+         */
+        functionalSample();
+
+
+        /* 5.Parallel Streams: mention benefits, caution on usage.
+         */
+        benchMark(); // parallel stream not always better
+
+    }
+
+    private void checkCollectionVsStream() {
+        List<List<Asset>> assetWithChild = new ArrayList<>();
+        List<Asset> tempList = Arrays.asList(new Asset(1, Arrays.asList("BiServer", "BiReport1"))
+                , new Asset(2, Arrays.asList("BiServer", "BiReport2"))
+                , new Asset(3, Arrays.asList("BiServer", "BiReport2")));
+        assetWithChild.add(tempList);
+
+        List<Asset> resultList = new ArrayList<>();
+        for (List<Asset> assetList : assetWithChild) {
+            for (Asset asset : assetList) {
+                for (String name : asset.getChildAssets()) {
+                    if (name.contains("BiReport2")) {
+                        resultList.add(asset);
+                    }
+                }
+            }
+        }
+
+        List<Integer> resultListName = new ArrayList<>();
+        for (Asset asset : resultList) {
+            resultListName.add(asset.getId());
+        }
+
+        for (int id : resultListName)
+            System.out.println(" -- " + id); // 15 lines code
+
+        // stream
+
+        // breakdown of code into fewer lines
+        // stage 1:
+        List<Asset> assetList =
+        assetWithChild.stream()
+                .flatMap(str -> str.stream()).collect(Collectors.toList());
+
+        assetList.forEach(val -> val.getChildAssets()
+                        .stream().filter(val1 -> val1.equals("BiReport2"))
+                        .collect(Collectors.toList())
+                                .forEach(ans -> System.out.println(" --> "+val.getId())));
+
+        // stage 2:
+        assetWithChild.stream()
+                .flatMap(str -> str.stream())
+                .forEach(val -> val.getChildAssets()
+                        .stream().filter(val1 -> val1.equals("BiReport2"))
+                        .collect(Collectors.toList())
+                        .forEach(ans -> System.out.println(" ==> "+val.getId())));
+
+        // stage 3:
+        assetWithChild.stream()
+                .flatMap(str -> str.stream())
+                    .forEach(val -> val.getChildAssets()
+                        .stream().filter(val1 -> val1.equals("BiReport2"))
+                        .forEach(ans -> System.out.println(" *****---> "+val.getId()))); // 5 lines Code
+
+    }
+
+    private static void predicateFilter() {
+        List<Asset> assetList = Arrays.asList(new Asset(1, "asset1"), new Asset(1, "asset1"),
+                new Asset(1, "asset2"), new Asset(1, "asset3"));
+
+        assetList.stream()
+                .filter(new Predicate<Asset>() {
+                    @Override
+                    public boolean test(Asset asset) {
+                        return asset.getName().equals("asset1");
+                    }
+                }).forEach(ans -> System.out.println(" " + ans.getName()));
+
+        // Using lambda now
+        assetList.stream()
+                .filter(asset ->{
+                        return asset.getName().equals("asset1");
+                }).forEach(ans -> System.out.println(" " + ans.getName()));
+
+        assetList.stream()
+                .filter(StreamsWalkThrough::isNotEqual)
+                .forEach(ans -> System.out.println(" " + ans.getName()));
+    }
+
+    private static void collectionOperations() {
+        Random random = new Random();
+        Map<String, Asset> assetMap = new HashMap<>();
+
+        for (int i = 0; i < 1000; i++) {
+            assetMap.put("assetId" + i, new Asset(random.nextInt(100), "DummyAsset" + i));
+        }
+        // find match in map
+        Optional<String> isValuePresent = assetMap.entrySet()
+                .stream()
+                .filter(entry -> entry.getValue().equals("DummyAsset100"))
+                .map(Map.Entry::getKey)
+                .findFirst();
+        System.out.println(" Is Value Present::: " + isValuePresent);
+    }
+
+    private static void functionalSample() {
+        List<Asset> assetListSample = Arrays.asList(new Asset(1, "asset1"), new Asset(1, "asset1"),
+                new Asset(2, "asset2"), new Asset(4, "asset3"), new Asset(4, "asset4"),
+                new Asset(5, "asset5"),
+                new Asset(6, "asset6"));
+
+        assetListSample
+                .stream()
+                .filter(StreamsWalkThrough::isNotEqual)
+                .map(
+                        new Function<Asset, Asset>() {
+                            @Override
+                            public Asset apply(Asset asset) {
+                                return new Asset(1,"Modified Asset");
+                            }
+                        }
+                );
+
+        // modified as lambda
+        assetListSample
+                .stream()
+                .filter(StreamsWalkThrough::isNotEqual)
+                .map(
+                        modAsset -> new Asset(1,"Modified Asset yet again")
+                ).forEach(System.out::println);
+
+
+
+    }
+
+    private static void benchMark() {
+        Random random = new Random();
+        Map<String, Asset> assetMap = new HashMap<>();
+
+        for (int i = 0; i < 1000; i++) {
+            assetMap.put("assetId" + i, new Asset(random.nextInt(100), "DummyAsset" + i));
+        }
+
+        long start = System.currentTimeMillis();
+        assetMap.entrySet()
+                .parallelStream()
+                .forEach(number -> System.out.print(" " +Thread.currentThread().getName()));
+
+        long end = System.currentTimeMillis();
+        System.out.println("/n");
+        System.out.println(" Time taken in Parallel Streaming " + (end-start));
+
+        start = System.currentTimeMillis();
+        assetMap.entrySet()
+                .stream()
+                .forEach(number -> System.out.print(" " +Thread.currentThread().getName()));
+
+        end = System.currentTimeMillis();
+        System.out.println("/n");
+        System.out.println(" Time taken in Single Streaming " + (end-start));
+    }
+
+    private static boolean isNotEqual(Asset assetName) {
+        return !assetName.getName().equals("asset1");
+    }
+
+}
+
+
+
+
+
+class Asset {
+
+    private int id;
+    private String name;
+
+    public Asset(int id, List<String> childAssets) {
+        this.id = id;
+        this.childAssets = childAssets;
+    }
+
+
+    public List<String> getChildAssets() {
+        return childAssets;
+    }
+
+    private List<String> childAssets;
+
+    public Asset(int id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+}
