@@ -1,0 +1,109 @@
+package Java17Faetures;
+
+public class Java17Features {
+
+
+    //1. record
+    //2. sealed Clases and interfaces
+    //4. text blocks
+    public sealed interface Service permits Truck, Car {
+
+        int getMaxServiceIntervalInMonths();
+
+        default int getMaxDistanceBetweenServicesInKilometers() {
+            return 100000;
+        }
+
+    }
+
+
+    // sealed and non -sealed implementation
+    public final class Truck implements Service {
+
+        private final int loadCapacity;
+
+        public Truck(int loadCapacity, String registrationNumber) {
+            this.loadCapacity = loadCapacity;
+        }
+
+        public int getLoadCapacity() {
+            return loadCapacity;
+        }
+
+        @Override
+        public int getMaxServiceIntervalInMonths() {
+            return 18;
+        }
+
+    }
+
+    public non-sealed class Car implements Service {
+
+        private final int numberOfSeats;
+
+        public Car(int numberOfSeats, String registrationNumber) {
+            this.numberOfSeats = numberOfSeats;
+        }
+
+        public int getNumberOfSeats() {
+            return numberOfSeats;
+        }
+
+        @Override
+        public int getMaxServiceIntervalInMonths() {
+            return 12;
+        }
+
+    }
+
+
+    public static void main(String args[]) {
+
+        Java17Features java17Features = new Java17Features();
+        System.out.println(" " + java17Features.javaSwitch11(2));
+        //System.out.println(" " +  java17Features.javaswitch17(""));
+
+        User user = new User("akkhil ");
+        System.out.println(" User is " + user.name());
+
+        String text = """
+                  test
+                  case
+                  is
+                  working
+                """;
+
+        System.out.println(" text is " + text);
+
+    }
+
+
+    private String javaSwitch11(int day) {
+        return switch (day) {
+            case 1 -> "First";
+            case 2 -> "Second";
+            default -> "Invalid Day";
+        };
+    }
+
+    //1. switch expressions
+    /* private String  javaswitch17(Object o){
+        return switch (o){
+            case null -> "Nul value";
+            case String str -> "a string";
+            case Employee e -> "";
+            default -> "UnkNown";
+        };
+    }
+  */
+
+}
+
+
+class Employee {
+
+}
+
+
+record User(String name) {
+}
